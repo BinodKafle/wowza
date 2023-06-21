@@ -8,10 +8,8 @@ WOWZA_SETTINGS.setdefault(
 )
 
 WOWZA_SETTINGS.setdefault(
-    "BASE_URL", "https://api{}.cloud.wowza.com/api/v{}/".format(
-        '-sandbox' if WOWZA_SETTINGS['WSC_SANDBOX'] is True else '',
-        WOWZA_SETTINGS['WSC_API_VERSION']
-    )
+    "BASE_URL",
+    f"https://api{'-sandbox' if WOWZA_SETTINGS['WSC_SANDBOX'] is True else ''}.cloud.wowza.com/api/v{WOWZA_SETTINGS['WSC_API_VERSION']}/",
 )
 
 session = requests.Session()

@@ -33,11 +33,11 @@ class LiveStreams(object):
                 'message': 'When getting optional info on a stream, a \
                 stream_id needs to be provided.'
             })
-        path = self.base_url + 'live_streams/'
+        path = f'{self.base_url}live_streams/'
         if stream_id:
             path = path + stream_id
         if options:
-            path = path + "/{}".format(options)
+            path = f"{path}/{options}"
         response = session.get(path, headers=self.headers)
         return response.json()
 
@@ -61,7 +61,7 @@ class LiveStreams(object):
         param_dict = {
             'live_stream': param_dict
         }
-        path = self.base_url + 'live_streams/'
+        path = f'{self.base_url}live_streams/'
         response = session.post(
             path,
             json.dumps(param_dict),
@@ -73,7 +73,7 @@ class LiveStreams(object):
         """
         Used to start a live stream
         """
-        path = self.base_url + "live_streams/{}/start".format(stream_id)
+        path = f"{self.base_url}live_streams/{stream_id}/start"
         response = session.put(path, data='', headers=self.headers)
         return response.json()
 
@@ -81,7 +81,7 @@ class LiveStreams(object):
         """
         Used to get the state of a live stream
         """
-        path = self.base_url + "live_streams/{}/state".format(stream_id)
+        path = f"{self.base_url}live_streams/{stream_id}/state"
         response = session.get(path, data='', headers=self.headers)
         return response.json()
 
@@ -95,7 +95,7 @@ class LiveStreams(object):
             param_dict = {
                 'live_stream': param_dict
             }
-            path = self.base_url + 'live_streams/{}'.format(stream_id)
+            path = f'{self.base_url}live_streams/{stream_id}'
             response = session.patch(path, json.dumps(param_dict), headers=self.headers)
             return response.json()
         else:
@@ -110,18 +110,17 @@ class LiveStreams(object):
         Used to stop a live stream
         """
         state = self.fetch(stream_id, 'state')['live_stream']['state']
-        if state == 'started':
-            path = self.base_url + "live_streams/{}/stop".format(stream_id)
-            response = session.put(path, data='', headers=self.headers)
-            if 'meta' in response.json():
-                if response.json()['meta']['code'] == 'ERR-422-InvalidInteraction':
-                    raise InvalidInteraction({
-                        'message': 'Unable to stop stream. Invalid state for stopping.'
-                    })
-        else:
+        if state != 'started':
             raise InvalidStateChange({
                 'message': 'Cannot stop a live stream that is not running.'
             })
+        path = f"{self.base_url}live_streams/{stream_id}/stop"
+        response = session.put(path, data='', headers=self.headers)
+        if 'meta' in response.json():
+            if response.json()['meta']['code'] == 'ERR-422-InvalidInteraction':
+                raise InvalidInteraction({
+                    'message': 'Unable to stop stream. Invalid state for stopping.'
+                })
         return response.json()
 
     def delete(self, stream_id):
@@ -130,9 +129,8 @@ class LiveStreams(object):
         """
         state = self.fetch(stream_id, 'state')['live_stream']['state']
         if state is not 'started':
-            path = self.base_url + 'live_streams/{}'.format(stream_id)
-            response = session.delete(path, headers=self.headers)
-            return response
+            path = f'{self.base_url}live_streams/{stream_id}'
+            return session.delete(path, headers=self.headers)
         else:
             raise InvalidInteraction({
                 'message': 'Cannot delete a running event. Stop the event first \
